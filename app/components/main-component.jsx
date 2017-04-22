@@ -1,5 +1,4 @@
 import React from 'react'
-import store from '../store/data-grid-store'
 import { addTodo, deleteTodo } from '../actions/todo-actions'
 
 class MainComponent extends React.Component {
@@ -9,16 +8,30 @@ class MainComponent extends React.Component {
   }
 
   componentDidMount() {
-    let listener = () => this.setState({ todos: store.getState().todos })
-    this.unsubscribe = store.subscribe(listener)
+    let listener = () => this.setState({ todos: this.props.store.getState().todos })
+    this.unsubscribe = this.props.store.subscribe(listener)
+  }
+
+  componentWillUnmount() {
+    this.unsubscribe()
   }
 
   addTodo(e) {
-    addTodo(this.state.text)
+    this.props.store.dispatch(addTodo(this.state.text))
   }
 
   deleteTodo(idx, todo, e) {
-    deleteTodo(idx, todo)
+    this.props.store.dispatch(deleteTodo(idx, todo))
+  }
+
+  setConfig() {
+    this.props.store.dispatch({
+      type: 'SET_CONFIG',
+      config: {
+        ENV:'PROD',
+        flavor: 'strawberry'
+      }
+    })
   }
 
   handleChange(e) {
@@ -26,7 +39,7 @@ class MainComponent extends React.Component {
   }
 
   render() {
-    let todos = store.getState().todos.map((todo, idx) => {
+    let todos = this.props.store.getState().todos.map((todo, idx) => {
       return (
         <div className="todo-wrapper" key={todo + idx}>
           <div >
@@ -44,6 +57,7 @@ class MainComponent extends React.Component {
         {todos}
         <input type='text' value={this.state.text} onChange={this.handleChange.bind(this)}></input>
         <button onClick={this.addTodo.bind(this)}>ADD</button>
+        <button onClick={this.setConfig.bind(this)}>Hello</button>
       </div>
     )
   }

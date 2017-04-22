@@ -1,7 +1,23 @@
 import { createStore, applyMiddleware } from 'redux'
-import thunk from 'redux-thunk'
 import mainReducer from '../reducers/main-reducer'
-import logger from './diff-state-middleware'
+
+// middlewares
+import thunk from 'redux-thunk'
+import logger from './middlewares/diff-state-middleware'
+
+//actions
 
 
-export default createStore(mainReducer, {}, applyMiddleware(thunk, logger))
+const devMiddleWare = function (configuredState) {
+  if (configuredState.config.ENV && configuredState.config.ENV === 'DEV') {
+    return [thunk, logger]
+  } else {
+    return [thunk]
+  }
+}
+
+const configureStore = (configuredState) => {
+  return createStore(mainReducer, configuredState, applyMiddleware(...devMiddleWare(configuredState)))
+}
+
+export default configureStore

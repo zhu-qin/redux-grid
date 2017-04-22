@@ -58,13 +58,21 @@
 
 	var _mainComponent2 = _interopRequireDefault(_mainComponent);
 
+	var _dataGridStore = __webpack_require__(183);
+
+	var _dataGridStore2 = _interopRequireDefault(_dataGridStore);
+
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-	document.addEventListener("DOMContentLoaded", function () {
-	    var root = document.getElementById('root');
-	    _reactDom2.default.render(_react2.default.createElement(_mainComponent2.default, null), root);
-	});
 	// components
+	var RunReduxGridStore = function RunReduxGridStore(initialState, root) {
+	  var store = (0, _dataGridStore2.default)(initialState);
+	  document.addEventListener("DOMContentLoaded", function () {
+	    _reactDom2.default.render(_react2.default.createElement(_mainComponent2.default, { store: store }), root);
+	  });
+	};
+
+	window.RunReduxGridStore = RunReduxGridStore;
 
 /***/ }),
 /* 1 */
@@ -21808,10 +21816,6 @@
 
 	var _react2 = _interopRequireDefault(_react);
 
-	var _dataGridStore = __webpack_require__(183);
-
-	var _dataGridStore2 = _interopRequireDefault(_dataGridStore);
-
 	var _todoActions = __webpack_require__(208);
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
@@ -21840,19 +21844,35 @@
 	      var _this2 = this;
 
 	      var listener = function listener() {
-	        return _this2.setState({ todos: _dataGridStore2.default.getState().todos });
+	        return _this2.setState({ todos: _this2.props.store.getState().todos });
 	      };
-	      this.unsubscribe = _dataGridStore2.default.subscribe(listener);
+	      this.unsubscribe = this.props.store.subscribe(listener);
+	    }
+	  }, {
+	    key: 'componentWillUnmount',
+	    value: function componentWillUnmount() {
+	      this.unsubscribe();
 	    }
 	  }, {
 	    key: 'addTodo',
 	    value: function addTodo(e) {
-	      (0, _todoActions.addTodo)(this.state.text);
+	      this.props.store.dispatch((0, _todoActions.addTodo)(this.state.text));
 	    }
 	  }, {
 	    key: 'deleteTodo',
 	    value: function deleteTodo(idx, todo, e) {
-	      (0, _todoActions.deleteTodo)(idx, todo);
+	      this.props.store.dispatch((0, _todoActions.deleteTodo)(idx, todo));
+	    }
+	  }, {
+	    key: 'setConfig',
+	    value: function setConfig() {
+	      this.props.store.dispatch({
+	        type: 'SET_CONFIG',
+	        config: {
+	          ENV: 'PROD',
+	          flavor: 'strawberry'
+	        }
+	      });
 	    }
 	  }, {
 	    key: 'handleChange',
@@ -21864,7 +21884,7 @@
 	    value: function render() {
 	      var _this3 = this;
 
-	      var todos = _dataGridStore2.default.getState().todos.map(function (todo, idx) {
+	      var todos = this.props.store.getState().todos.map(function (todo, idx) {
 	        return _react2.default.createElement(
 	          'div',
 	          { className: 'todo-wrapper', key: todo + idx },
@@ -21890,6 +21910,11 @@
 	          'button',
 	          { onClick: this.addTodo.bind(this) },
 	          'ADD'
+	        ),
+	        _react2.default.createElement(
+	          'button',
+	          { onClick: this.setConfig.bind(this) },
+	          'Hello'
 	        )
 	      );
 	    }
@@ -21912,21 +21937,41 @@
 
 	var _redux = __webpack_require__(184);
 
-	var _reduxThunk = __webpack_require__(205);
-
-	var _reduxThunk2 = _interopRequireDefault(_reduxThunk);
-
 	var _mainReducer = __webpack_require__(206);
 
 	var _mainReducer2 = _interopRequireDefault(_mainReducer);
 
-	var _diffStateMiddleware = __webpack_require__(209);
+	var _reduxThunk = __webpack_require__(205);
+
+	var _reduxThunk2 = _interopRequireDefault(_reduxThunk);
+
+	var _diffStateMiddleware = __webpack_require__(211);
 
 	var _diffStateMiddleware2 = _interopRequireDefault(_diffStateMiddleware);
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-	exports.default = (0, _redux.createStore)(_mainReducer2.default, {}, (0, _redux.applyMiddleware)(_reduxThunk2.default, _diffStateMiddleware2.default));
+	function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
+
+	// middlewares
+
+
+	//actions
+
+
+	var devMiddleWare = function devMiddleWare(configuredState) {
+	  if (configuredState.config.ENV && configuredState.config.ENV === 'DEV') {
+	    return [_reduxThunk2.default, _diffStateMiddleware2.default];
+	  } else {
+	    return [_reduxThunk2.default];
+	  }
+	};
+
+	var configureStore = function configureStore(configuredState) {
+	  return (0, _redux.createStore)(_mainReducer2.default, configuredState, _redux.applyMiddleware.apply(undefined, _toConsumableArray(devMiddleWare(configuredState))));
+	};
+
+	exports.default = configureStore;
 
 /***/ }),
 /* 184 */
@@ -23004,9 +23049,14 @@
 
 	var _todosReducer2 = _interopRequireDefault(_todosReducer);
 
+	var _configReducer = __webpack_require__(212);
+
+	var _configReducer2 = _interopRequireDefault(_configReducer);
+
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 	exports.default = (0, _redux.combineReducers)({
+	  config: _configReducer2.default,
 	  todos: _todosReducer2.default
 	});
 
@@ -23021,7 +23071,7 @@
 	});
 
 	exports.default = function () {
-	  var state = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : ['hello'];
+	  var state = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : [];
 	  var action = arguments[1];
 
 	  switch (action.type) {
@@ -23040,7 +23090,7 @@
 
 /***/ }),
 /* 208 */
-/***/ (function(module, exports, __webpack_require__) {
+/***/ (function(module, exports) {
 
 	'use strict';
 
@@ -23049,35 +23099,28 @@
 	});
 	exports.addTodo = addTodo;
 	exports.deleteTodo = deleteTodo;
-
-	var _dataGridStore = __webpack_require__(183);
-
-	var _dataGridStore2 = _interopRequireDefault(_dataGridStore);
-
-	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-	var dispatch = _dataGridStore2.default.dispatch;
-
 	function addTodo(todo) {
-	  dispatch({
+	  return {
 	    type: 'ADD_TODO',
 	    todo: todo
-	  });
+	  };
 	}
 
 	function deleteTodo(idx, todo) {
-	  dispatch({
+	  return {
 	    type: 'DELETE_TODO',
 	    idx: idx,
 	    todo: todo
-	  });
+	  };
 	}
 
 /***/ }),
-/* 209 */
+/* 209 */,
+/* 210 */,
+/* 211 */
 /***/ (function(module, exports) {
 
-	"use strict";
+	'use strict';
 
 	Object.defineProperty(exports, "__esModule", {
 	  value: true
@@ -23091,41 +23134,46 @@
 	};
 
 	var diffArray = function diffArray(arrayOne, arrayTwo) {
-	  var diff = void 0;
+	  var diffs = {};
 	  if (arrayOne.length != arrayTwo.length) {
-	    diff = [arrayOne, arrayTwo];
+	    diffs['diffLen'] = [arrayOne, arrayTwo];
 	  } else {
 	    arrayOne.forEach(function (el, idx) {
 	      if (el != arrayTwo[idx]) {
-	        diff = [arrayOne, arrayTwo];
+	        diffs[idx] = [arrayOne, arrayTwo];
 	      } else if (el === arrayTwo[idx] && isPlainObject(el)) {
-	        diff = diffPlainObject(el, arrayTwo[idx]);
+	        diffs[idx] = diffPlainObject(el, arrayTwo[idx]);
 	      }
 	    });
 	  }
 
-	  return diff;
+	  return diffs;
 	};
 
 	var diffPlainObject = function diffPlainObject(objectOne, objectTwo) {
-	  var diff = void 0;
+	  var diffs = {};
 
 	  if (isPlainObject(objectOne) && isPlainObject(objectTwo)) {
+
 	    var objectOneKeys = Object.keys(objectOne);
 	    var objectTwoKeys = Object.keys(objectTwo);
 	    var oneWithMoreKeys = objectOneKeys.length >= objectTwoKeys.length ? objectOneKeys : objectTwoKeys;
 
 	    oneWithMoreKeys.forEach(function (key) {
 	      if (objectOne[key] != objectTwo[key]) {
-	        diff = [objectOne[key], objectTwo[key]];
+	        diffs[key] = [objectOne[key], objectTwo[key]];
 	      } else if (objectOne[key] === objectTwo[key] && Array.isArray(objectOne[key])) {
-	        diff = diffArray(objectOne[key], objectTwo[key]);
+	        diffs[key] = diffArray(objectOne[key], objectTwo[key]);
 	      } else if (objectOne[key] === objectTwo[key] && isPlainObject(objectOne[key])) {
-	        diff = diffPlainObject(objectOne[key], objectTwo[key]);
+	        var plainDiff = diffPlainObject(objectOne[key], objectTwo[key]);
+	        if (Object.keys(plainDiff).length > 0) {
+	          diffs[key] = plainDiff;
+	        }
 	      }
 	    });
 	  }
-	  return diff;
+
+	  return diffs;
 	};
 
 	var logger = function logger(store) {
@@ -23134,12 +23182,35 @@
 	      var prevState = store.getState();
 	      next(action);
 	      var currentState = store.getState();
-	      console.log([action.type, Object.values(action), diffPlainObject(prevState, currentState)]);
+	      var diff = diffPlainObject(prevState, currentState);
+	      console.log([action.type, action, diff]);
 	    };
 	  };
 	};
 
 	exports.default = logger;
+
+/***/ }),
+/* 212 */
+/***/ (function(module, exports) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+
+	exports.default = function () {
+	  var state = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+	  var action = arguments[1];
+
+	  switch (action.type) {
+	    case 'SET_CONFIG':
+	      return action.config;
+	    default:
+	      return state;
+	  }
+	};
 
 /***/ })
 /******/ ]);
