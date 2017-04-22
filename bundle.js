@@ -21920,66 +21920,13 @@
 
 	var _mainReducer2 = _interopRequireDefault(_mainReducer);
 
+	var _diffStateMiddleware = __webpack_require__(209);
+
+	var _diffStateMiddleware2 = _interopRequireDefault(_diffStateMiddleware);
+
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-	var isPlainObject = function isPlainObject(obj) {
-	  if (obj && obj.__proto__.constructor === Object && !Array.isArray(obj)) {
-	    return true;
-	  } else {
-	    return false;
-	  }
-	};
-
-	var diffArray = function diffArray(arrayOne, arrayTwo) {
-	  var diff = void 0;
-	  if (arrayOne.length != arrayTwo.length) {
-	    diff = [arrayOne, arrayTwo];
-	  } else {
-	    arrayOne.forEach(function (el, idx) {
-	      if (el != arrayTwo[idx]) {
-	        diff = [arrayOne, arrayTwo];
-	      } else if (el === arrayTwo[idx] && isPlainObject(el)) {
-	        diff = diffPlainObject(el, arrayTwo[idx]);
-	      }
-	    });
-	  }
-
-	  return diff;
-	};
-
-	var diffPlainObject = function diffPlainObject(objectOne, objectTwo) {
-	  var diff = void 0;
-
-	  if (isPlainObject(objectOne) && isPlainObject(objectTwo)) {
-	    var objectOneKeys = Object.keys(objectOne);
-	    var objectTwoKeys = Object.keys(objectTwo);
-	    var oneWithMoreKeys = objectOneKeys.length >= objectTwoKeys.length ? objectOneKeys : objectTwoKeys;
-
-	    oneWithMoreKeys.forEach(function (key) {
-	      if (objectOne[key] != objectTwo[key]) {
-	        diff = [objectOne[key], objectTwo[key]];
-	      } else if (objectOne[key] === objectTwo[key] && Array.isArray(objectOne[key])) {
-	        diff = diffArray(objectOne[key], objectTwo[key]);
-	      } else if (objectOne[key] === objectTwo[key] && isPlainObject(objectOne[key])) {
-	        diff = diffPlainObject(objectOne[key], objectTwo[key]);
-	      }
-	    });
-	  }
-	  return diff;
-	};
-
-	var logger = function logger(store) {
-	  return function (next) {
-	    return function (action) {
-	      var prevState = store.getState();
-	      next(action);
-	      var currentState = store.getState();
-	      console.log([action.type, Object.values(action), diffPlainObject(prevState, currentState)]);
-	    };
-	  };
-	};
-
-	exports.default = (0, _redux.createStore)(_mainReducer2.default, {}, (0, _redux.applyMiddleware)(_reduxThunk2.default, logger));
+	exports.default = (0, _redux.createStore)(_mainReducer2.default, {}, (0, _redux.applyMiddleware)(_reduxThunk2.default, _diffStateMiddleware2.default));
 
 /***/ }),
 /* 184 */
@@ -23125,6 +23072,74 @@
 	    todo: todo
 	  });
 	}
+
+/***/ }),
+/* 209 */
+/***/ (function(module, exports) {
+
+	"use strict";
+
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	var isPlainObject = function isPlainObject(obj) {
+	  if (obj && obj.__proto__.constructor === Object && !Array.isArray(obj)) {
+	    return true;
+	  } else {
+	    return false;
+	  }
+	};
+
+	var diffArray = function diffArray(arrayOne, arrayTwo) {
+	  var diff = void 0;
+	  if (arrayOne.length != arrayTwo.length) {
+	    diff = [arrayOne, arrayTwo];
+	  } else {
+	    arrayOne.forEach(function (el, idx) {
+	      if (el != arrayTwo[idx]) {
+	        diff = [arrayOne, arrayTwo];
+	      } else if (el === arrayTwo[idx] && isPlainObject(el)) {
+	        diff = diffPlainObject(el, arrayTwo[idx]);
+	      }
+	    });
+	  }
+
+	  return diff;
+	};
+
+	var diffPlainObject = function diffPlainObject(objectOne, objectTwo) {
+	  var diff = void 0;
+
+	  if (isPlainObject(objectOne) && isPlainObject(objectTwo)) {
+	    var objectOneKeys = Object.keys(objectOne);
+	    var objectTwoKeys = Object.keys(objectTwo);
+	    var oneWithMoreKeys = objectOneKeys.length >= objectTwoKeys.length ? objectOneKeys : objectTwoKeys;
+
+	    oneWithMoreKeys.forEach(function (key) {
+	      if (objectOne[key] != objectTwo[key]) {
+	        diff = [objectOne[key], objectTwo[key]];
+	      } else if (objectOne[key] === objectTwo[key] && Array.isArray(objectOne[key])) {
+	        diff = diffArray(objectOne[key], objectTwo[key]);
+	      } else if (objectOne[key] === objectTwo[key] && isPlainObject(objectOne[key])) {
+	        diff = diffPlainObject(objectOne[key], objectTwo[key]);
+	      }
+	    });
+	  }
+	  return diff;
+	};
+
+	var logger = function logger(store) {
+	  return function (next) {
+	    return function (action) {
+	      var prevState = store.getState();
+	      next(action);
+	      var currentState = store.getState();
+	      console.log([action.type, Object.values(action), diffPlainObject(prevState, currentState)]);
+	    };
+	  };
+	};
+
+	exports.default = logger;
 
 /***/ })
 /******/ ]);
