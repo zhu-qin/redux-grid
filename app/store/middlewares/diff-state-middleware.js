@@ -27,7 +27,6 @@ let diffPlainObject = function(objectOne, objectTwo) {
   let diffs = {}
 
   if (isPlainObject(objectOne) && isPlainObject(objectTwo)) {
-
     let objectOneKeys = Object.keys(objectOne)
     let objectTwoKeys = Object.keys(objectTwo)
     let oneWithMoreKeys = objectOneKeys.length >= objectTwoKeys.length ? objectOneKeys : objectTwoKeys
@@ -36,14 +35,16 @@ let diffPlainObject = function(objectOne, objectTwo) {
       if (objectOne[key] != objectTwo[key]) {
         diffs[key] = [objectOne[key], objectTwo[key]]
       } else if (objectOne[key] === objectTwo[key] && Array.isArray(objectOne[key])) {
-        diffs[key] = diffArray(objectOne[key], objectTwo[key])
+        let arrayDiff = diffArray(objectOne[key], objectTwo[key])
+        if (Object.keys(arrayDiff).length > 0) {
+          diffs[key] = arrayDiff
+        }
       } else if (objectOne[key] === objectTwo[key] && isPlainObject(objectOne[key])) {
         let plainDiff = diffPlainObject(objectOne[key], objectTwo[key])
         if (Object.keys(plainDiff).length > 0) {
           diffs[key] = plainDiff
         }
       }
-
     })
   }
 
