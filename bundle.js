@@ -23125,8 +23125,11 @@
 	Object.defineProperty(exports, "__esModule", {
 	  value: true
 	});
+
+	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+
 	var isPlainObject = function isPlainObject(obj) {
-	  if (obj && obj.__proto__.constructor === Object && !Array.isArray(obj)) {
+	  if (obj && (typeof obj === 'undefined' ? 'undefined' : _typeof(obj)) === 'object' && !Array.isArray(obj)) {
 	    return true;
 	  } else {
 	    return false;
@@ -23152,7 +23155,6 @@
 
 	var diffPlainObject = function diffPlainObject(objectOne, objectTwo) {
 	  var diffs = {};
-
 	  if (isPlainObject(objectOne) && isPlainObject(objectTwo)) {
 	    var objectOneKeys = Object.keys(objectOne);
 	    var objectTwoKeys = Object.keys(objectTwo);

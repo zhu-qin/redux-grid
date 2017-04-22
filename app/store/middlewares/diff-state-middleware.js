@@ -1,5 +1,5 @@
 let isPlainObject = function (obj) {
-  if (obj && obj.__proto__.constructor === Object && !Array.isArray(obj)) {
+  if (obj && typeof obj === 'object' && !Array.isArray(obj)) {
     return true
   } else {
     return false
@@ -25,7 +25,6 @@ let diffArray = function (arrayOne, arrayTwo) {
 
 let diffPlainObject = function(objectOne, objectTwo) {
   let diffs = {}
-
   if (isPlainObject(objectOne) && isPlainObject(objectTwo)) {
     let objectOneKeys = Object.keys(objectOne)
     let objectTwoKeys = Object.keys(objectTwo)
